@@ -21,7 +21,7 @@ using DifferentialEquations, ModelingToolkit, Plots
 
 @variables t Tz(t)=20
 
-@parameters Cz=47.1 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=15 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 Tw1=18 Tw2=17 Tr=25 q=300
+@parameters Cz=47.1 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=15 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 Tw1=18 Tw2=17 Tr=25 q=500
 
 D = Differential(t)
 
@@ -31,8 +31,15 @@ eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*
 
 simpsys = structural_simplify(sys)
 
-tspan = (0.0,10.0)
-prob = ODEProblem(simpsys,[],tspan)
+tspan = (0.0,100.0)
+
+
+ev_times = collect(0.0:1.0:100)
+condition(u,t,integrator) = t ∈ ev_times
+affect!(integrator) = integrator.p[14] <= 150 ? integrator.p[15] = integrator.p[15] : integrator.p[15] += (-150+rand()*300)
+cb = DiscreteCallback(condition,affect!)
+
+prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
 
 sol = solve(prob)
 
