@@ -19,24 +19,28 @@ using DifferentialEquations, ModelingToolkit, Plots
 # Tr  - temperature (Roof) - C
 # q   - heat gain for occupants and lights - W
 
-@variables t Tz(t)=20
+@variables t Tz(t)=35 Tw1(t)=20 Tw2(t)=20 Tr(t)=25 Wz(t)=0.5
 
-@parameters Cz=47.1 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=15 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 Tw1=18 Tw2=17 Tr=25 q=500
+@parameters Cz=47.1 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=16 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=300 To=33 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08
 
 D = Differential(t)
 
-eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*(Tw2-Tz)+q)/Cz]
+eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*(Tw2-Tz)+q)/Cz
+        D(Tw1) ~ (Uw1*Aw1*(Tz-Tw1)+Uw1*Aw1*(To-Tw1))/Cw1
+        D(Tw2) ~ (Uw2*Aw2*(Tz-Tw2)+Uw1*Aw1*(To-Tw2))/Cw2
+        D(Tr) ~ (Ur*Ar*(Tz-Tr)+Ur*Ar*(To-Tr))/Cr
+        D(Wz) ~ (Fsa*(Ws-Wz)+(P/ρa))/Vz]
 
 @named sys = ODESystem(eqs,t)
 
 simpsys = structural_simplify(sys)
 
-tspan = (0.0,100.0)
+tspan = (0.0,20.0)
 
 
-ev_times = collect(0.0:1.0:100)
+ev_times = collect(0.0:1.0:20)
 condition(u,t,integrator) = t ∈ ev_times
-affect!(integrator) = integrator.p[14] <= 150 ? integrator.p[15] = integrator.p[15] : integrator.p[15] += (-150+rand()*300)
+affect!(integrator) = integrator.u[1] += 5*rand()
 cb = DiscreteCallback(condition,affect!)
 
 prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
