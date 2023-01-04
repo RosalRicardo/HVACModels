@@ -35,12 +35,18 @@ eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*
 
 simpsys = structural_simplify(sys)
 
-tspan = (0.0,20.0)
+tspan = (0.0,100.0)
 
 
-ev_times = collect(0.0:1.0:20)
+ev_times = collect(0.0:1.0:100)
 condition(u,t,integrator) = t ∈ ev_times
-affect!(integrator) = integrator.u[1] += 5*rand()
+#affect!(integrator) = integrator.u[1] += 5*rand(); print(integrator.p[15])
+
+function affect!(integrator)
+    integrator.p[8] += (-150+300*rand())
+    println(integrator.p[8])
+end
+
 cb = DiscreteCallback(condition,affect!)
 
 prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
