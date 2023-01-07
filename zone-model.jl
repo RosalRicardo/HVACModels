@@ -1,4 +1,4 @@
-using DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statistics
+using  CairoMakie,DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statistics
 
 # variables
 
@@ -21,7 +21,7 @@ using DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statisti
 
 @variables t Tz(t)=35 Tw1(t)=20 Tw2(t)=20 Tr(t)=25 Wz(t)=0.5
 
-@parameters Cz=47.1 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=16 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=300 To=21 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08
+@parameters Cz=47.1e3 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=16 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=3000 To=21 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08
 
 D = Differential(t)
 
@@ -35,18 +35,18 @@ eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*
 
 simpsys = structural_simplify(sys)
 
-tspan = (0.0,10000.0)
+tspan = (0.0,100.0)
 
 
-ev_times = collect(0.0:1.0:10000)
+ev_times = collect(0.0:1.0:100)
 condition(u,t,integrator) = t ∈ ev_times
 #affect!(integrator) = integrator.u[1] += 5*rand(); print(integrator.p[15])
 
 function affect!(integrator)
     if integrator.p[8] < 0
-        integrator.p[8] += (30*rand())
+        integrator.p[8] += (5000*rand())
     else
-        integrator.p[8] += (-15+30*rand())
+        integrator.p[8] += (-2500+5000*rand())
     end
     println(integrator.u[1])
 end
@@ -65,7 +65,11 @@ end
 
 bounds = [[30,100],[0.1,1.0],[1,3],[0.5,2.0],[10,25],[1,3],[1,3],[1,3],[9,9],[12,12],[9,9],[0,1500],[8,40],[70,70],[60,60],[80,80],[36,36],[0,1],[0,2]]
 
-reg_sens = gsa(f1, RegressionGSA(true), bounds, samples = 200)
+morris_sens = gsa(f1, Morris(), bounds, samples = 100)
 
+fig = Figure(resolution = (600, 400))
+fieldnames(typeof(morris_sens))
 
-plot(sol)
+morris_sens.means_star
+
+Plots.plot(sol)
