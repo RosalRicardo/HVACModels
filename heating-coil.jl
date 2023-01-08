@@ -22,7 +22,7 @@ condition(u,t,integrator) = t ∈ ev_times
 #affect!(integrator) = integrator.u[1] += 5*rand() print(integrator.p[7])
 function affect!(integrator)
     integrator.p[1] += 3*rand()
-    integrator.p[1] += 3*rand()
+    integrator.p[4] += 3*rand()
     println(integrator.p[4])
 end
 
@@ -32,4 +32,4 @@ prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
 
 sol = solve(prob)
 
-Plots.plot(sol)
+Plots.plot(sol,title="Heating and Cooling coil model")
