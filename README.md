@@ -35,5 +35,5 @@ list of analytical models assumptions.
 ### Model
 
 $$
-    C_z\frac{dTz}{dt} = f_{sa}\rho_{a}C_{pa}(T_{sa}-T_z)+2U_{w1}A_{w1}(T_w-Tz)+U_rA_r(T_r-T_z)+2U_{w2}A_{w2}(T_{w2}-T_z)
+    -+
 $$
