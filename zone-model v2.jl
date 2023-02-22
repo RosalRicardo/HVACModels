@@ -1,4 +1,4 @@
-using  CairoMakie,DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statistics
+using  Flux, CairoMakie, DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statistics
 
 # variables
 
@@ -21,11 +21,15 @@ using  CairoMakie,DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivi
 
 @variables t Tz(t)=40 Tw1(t)=20 Tw2(t)=20 Tr(t)=25 Wz(t)=0.5
 
-@parameters Cz=47.1e3 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=8 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=3000 To=21 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08
+ann = Chain(Dense(2,10,tanh), Dense(10,1))
+p1,re = Flux.destructure(ann)
+
+@parameters Cz=47.1e3 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=8 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=3000 To=21 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08 weights=p1 ann=re
 
 D = Differential(t)
 
-eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*(Tw2-Tz)+q)/Cz
+
+eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*(Tw2-Tz)+re(weights)(Tz)[1])/Cz
         D(Tw1) ~ (Uw1*Aw1*(Tz-Tw1)+Uw1*Aw1*(To-Tw1))/Cw1
         D(Tw2) ~ (Uw2*Aw2*(Tz-Tw2)+Uw1*Aw1*(To-Tw2))/Cw2
         D(Tr) ~ (Ur*Ar*(Tz-Tr)+Ur*Ar*(To-Tr))/Cr
@@ -58,20 +62,5 @@ cb = DiscreteCallback(condition,affect!)
 prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
 
 sol = solve(prob)
-
-f1 = function (p)
-    prob1 = remake(prob;p=p)
-    sol = solve(prob1,Tsit5();saveat=ev_times)
-    return [mean(sol[1,:]), maximum(sol[2,:])]
-end
-
-bounds = [[30,100],[0.1,1.0],[1,3],[0.5,2.0],[10,25],[1,3],[1,3],[1,3],[9,9],[12,12],[9,9],[0,1500],[8,40],[70,70],[60,60],[80,80],[36,36],[0,1],[0,2]]
-
-morris_sens = gsa(f1, Morris(), bounds, samples = 100)
-
-fig = Figure(resolution = (600, 400))
-fieldnames(typeof(morris_sens))
-
-morris_sens.means_star
 
 Plots.plot(sol)
