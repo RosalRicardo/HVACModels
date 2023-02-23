@@ -43,7 +43,7 @@ ps = Flux.params(p3)
 
 function dudt_(du,u,p,t)
     Tz, Tw1, Tw2, Tr, Wz, load = u
-    du[1] = (p[82]*p[84]*p[85]*(p[86]-Tz)+2*p[87]*p[90]*(Tw1-Tz)+p[89]*p[92]*(Tr-Tz)+2*p[88]*p[91]*(Tw2-Tz)+load)/p[82]
+    du[1] = (p[83]*p[84]*p[85]*(p[86]-Tz)+2*p[87]*p[90]*(Tw1-Tz)+p[89]*p[92]*(Tr-Tz)+2*p[88]*p[91]*(Tw2-Tz)+load)/p[82]
     du[2] = (p[87]*p[90]*(Tz-Tw1)+p[87]*p[90]*(p[93]-Tw1))/p[94]
     du[3] = (p[88]*p[91]*(Tz-Tw2)+p[88]*p[91]*(p[93]-Tw2))/p[95]
     du[4] = (p[89]*p[92]*(Tz-Tr)+p[89]*p[82]*(p[93]-Tr))/p[96]
@@ -54,10 +54,42 @@ end
 prob = ODEProblem(dudt_,u0,tspan,p3)
 concrete_solve(prob,Tsit5(),u0,p3,abstol=1e-8,reltol=1e-6)
 
+sol_ude = concrete_solve(prob,Tsit5(),u0,p3,abstol=1e-8,reltol=1e-6)
+
+tz = []
+for i in 1:200
+    push!(tz,sol_ude.u[i][1])
+    println(i)
+end
+
+function generate_load(initial_load)
+    load_data = Float32[initial_load]
+    for i ∈ collect(0:1.0:99)
+        if load_data[end] < 0
+            push!(load_data,load_data[end]+(500*rand()))
+        else
+            push!(load_data,load_data[end]+(-750+1500*rand()))
+        end
+    end
+    return load_data
+end
+
+load_data = generate_load(3000)
+plot(load_data)
+
+
 function predict_adjoint()
-    Array(concrete_solve(prob,Tsit5(),u0,p3,saveat=0.0:0.1:100.0))
+    Array(concrete_solve(prob,Tsit5(),u0,p3,saveat=0.0:1.0:100.0))
   end
-  loss_adjoint() = sum(abs2,x-1 for x in predict_adjoint())
+
+  result = Array(concrete_solve(prob,Tsit5(),u0,p3,saveat=0.0:1:100.0))
+
+sum(abs2.(result[6,:]-load_data))
+
+
+  
+
+  loss_adjoint() = sum(abs2.(predict_adjoint()[6,:]-load))
   loss_adjoint()
   
   data = Iterators.repeated((), 300)
@@ -76,3 +108,12 @@ function predict_adjoint()
   
   Flux.train!(loss_adjoint, ps, data, opt, cb = cb)
 
+  plot(concrete_solve(prob,Tsit5(),u0,p3,saveat=0.0:1:100.0))
+
+  tz = []
+  for i in 1:1001
+    push!(tz,sol_ude.u[i][1])
+    println(i)
+end
+
+plot(tz)

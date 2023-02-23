@@ -44,7 +44,7 @@ condition(u,t,integrator) = t ∈ ev_times
 
 function affect!(integrator)
     if integrator.p[8] < 0
-        integrator.p[8] += (1000*rand())
+        integrator.p[8] += (1500*rand())
         integrator.u[1] += (-0.3+0.5*rand())
     else
         integrator.p[8] += (-1500+3000*rand())
