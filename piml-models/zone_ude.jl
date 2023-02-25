@@ -89,10 +89,10 @@ sum(abs2.(result[6,:]-load_data))
 
   
 
-  loss_adjoint() = sum(abs2.(predict_adjoint()[6,:]-load))
+  loss_adjoint() = sum(abs2.(predict_adjoint()[6,:]-load_data))
   loss_adjoint()
   
-  data = Iterators.repeated((), 300)
+  data = Iterators.repeated((), 1000)
   opt = ADAM(0.01)
   iter = 0
   cb = function ()
@@ -112,8 +112,7 @@ sum(abs2.(result[6,:]-load_data))
 
   tz = []
   for i in 1:1001
-    push!(tz,sol_ude.u[i][1])
-    println(i)
+    push!(tz,sol_ude.u[i][6])
 end
 
 plot(tz)
