@@ -86,6 +86,8 @@ function predict_adjoint()
 
 sum(abs2.(result[6,:]-load_data))
 
+plot(result[6,:])
+
 
   
 
