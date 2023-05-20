@@ -19,7 +19,7 @@ using  CairoMakie,DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivi
 # Tr  - temperature (Roof) - C
 # q   - heat gain for occupants and lights - W
 
-@variables t Tz(t)=16 Tw1(t)=20 Tw2(t)=20 Tr(t)=25 Wz(t)=0.5
+@variables t Tz(t)=25 Tw1(t)=20 Tw2(t)=20 Tr(t)=25 Wz(t)=0.5
 
 @parameters Cz=47.1e3 Fsa=0.192  ρa=1.25 Cpa=1.005 Tsa=16 Uw1=2 Uw2=2 Ur=1 Aw1=9 Aw2=12 Ar=9 q=3000 To=21 Cw1=70 Cw2=60 Cr=80 Vz=36 Ws=0.02744 P=0.08
 
@@ -44,9 +44,9 @@ condition(u,t,integrator) = t ∈ ev_times
 
 function affect!(integrator)
     if integrator.p[8] < 0
-        integrator.p[8] += (500*rand())
+        integrator.p[8] += (3500*rand())
     else
-        integrator.p[8] += (-150+300*rand())
+        integrator.p[8] += (-1500*rand()+1500*rand())
     end
     println(integrator.u[1])
 end
