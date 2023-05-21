@@ -21,8 +21,8 @@ ev_times = collect(0.0:1.0:100)
 condition(u,t,integrator) = t ∈ ev_times
 #affect!(integrator) = integrator.u[1] += 5*rand() print(integrator.p[7])
 function affect!(integrator)
-    integrator.p[1] += 3*rand()
-    integrator.p[4] += 3*rand()
+    integrator.p[1] += 6*rand()
+    integrator.p[4] += 5*rand()
     println(integrator.p[4])
 end
 
