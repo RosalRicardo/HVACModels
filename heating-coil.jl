@@ -1,13 +1,14 @@
 using  CairoMakie,DifferentialEquations, ModelingToolkit, Plots, GlobalSensitivity, Statistics
 
-@variables t Tco(t)=15  
+@variables t Tco(t)=15 Wco(t)=40  
 
-@parameters Cah(t)=4.5 fsw(t)=8.02e-5 ρw(t)=998 Cpw(t)=4.1868 Twi(t)=7 Two(t)=12 UAa(t)=0.04 To(t)=10 fsa(t)=0.192 ρa(t)=1.25 Cpa(t)=1.005 Tm(t)=22
+@parameters Cah(t)=4.5 fsw(t)=8.02e-5 ρw(t)=998 Cpw(t)=4.1868 Twi(t)=7 Two(t)=12 UAa(t)=0.04 To(t)=10 fsa(t)=0.192 ρa(t)=1.25 Cpa(t)=1.005 Tm(t)=22 Wm(t)=0.45 Vah(t)=2.88
 
 D = Differential(t)
 
 eqs = [
-    D(Tco) ~ fsw*ρw*Cpw*(Twi-Two)+UAa*(To-Tco)+fsa*ρa*Cpa*(Tm-Tco)
+    D(Tco) ~ (fsw*ρw*Cpw*(Twi-Two)+UAa*(To-Tco)+fsa*ρa*Cpa*(Tm-Tco))/Cah
+    D(Wco) ~ (fsa*(Wm-Wco))/Vah
 ]
 
 @named sys = ODESystem(eqs,t)

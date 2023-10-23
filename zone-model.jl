@@ -35,21 +35,36 @@ eqs = [D(Tz) ~ (Fsa*ρa*Cpa*(Tsa-Tz)+2*Uw1*Aw1*(Tw1-Tz)+Ur*Ar*(Tr-Tz)+2*Uw2*Aw2*
 
 simpsys = structural_simplify(sys)
 
-tspan = (0.0,100.0)
+tspan = (0.0,345600.0)
 
+energy = sin.((0.0:1.0:345600.0)./15000.0).*30e3
+Plots.plot(energy)
 
-ev_times = collect(0.0:1.0:100)
+energy[3]
+
+ev_times = collect(0.0:1.0:345600)
 condition(u,t,integrator) = t ∈ ev_times
 #affect!(integrator) = integrator.u[1] += 5*rand(); print(integrator.p[15])
 
-function affect!(integrator)
-    if integrator.p[8] < 0
-        integrator.p[8] += (5000*rand())
+function affect2!(integrator)
+    if integrator.p[3] < 0
+        integrator.p[3] += (20e3*rand())
     else
-        integrator.p[8] += (-2500+5000*rand())
+        integrator.p[3] = energy[trunc(Int,integrator.t)]
     end
-    println(integrator.u[1])
+
+    println(integrator.p[1])
 end
+
+energy2 = []
+
+function affect!(integrator)
+    integrator.p[3] = energy[trunc(Int,integrator.t)]
+    push!(energy2,integrator.p[3])
+    println(integrator.p)
+end
+
+
 
 cb = DiscreteCallback(condition,affect!)
 
@@ -57,7 +72,7 @@ prob = ODEProblem(simpsys,[],tspan,callback=cb,tstops=ev_times)
 
 sol = solve(prob)
 
-f1 = function (p)
+#= f1 = function (p)
     prob1 = remake(prob;p=p)
     sol = solve(prob1,Tsit5();saveat=ev_times)
     return [mean(sol[1,:]), maximum(sol[2,:])]
@@ -70,6 +85,8 @@ morris_sens = gsa(f1, Morris(), bounds, samples = 100)
 fig = Figure(resolution = (600, 400))
 fieldnames(typeof(morris_sens))
 
-morris_sens.means_star
+morris_sens.means_star =#
 
 Plots.plot(sol)
+
+Plots.plot(energy2)
